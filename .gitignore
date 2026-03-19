@@ -1,6 +1,12 @@
 .streamlit/
+.vscode/
 __pycache__/
-*.pyc
-.env
+cache/
+Data/
+Flow/
+Notebooks/
+Pics/
+*.db
+*.zip
+*.venv
 venv/
-.venv/
