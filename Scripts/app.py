@@ -46,13 +46,21 @@ def get_db_connection():
 engine = get_db_connection()
 
 @st.cache_data
-def get_demand_surface(city):
-    if not engine: return []
+def get_demand_surface(city_name):
+    if engine:
+        try:
+            query = f"SELECT ST_Y(geometry) as lat, ST_X(geometry) as lon, pop_density FROM {city_name.lower()}_analytics_results LIMIT 5000;"
+            return pd.read_sql(query, engine)[['lat', 'lon', 'pop_density']].values.tolist()
+        except:
+            pass # If DB fails, move to CSV fallback
+            
+    # Fallback: Read from the CSV (GitHub/Live Deployment)
     try:
-        query = f"SELECT ST_Y(geom) as lat, ST_X(geom) as lon, pop_density FROM {city.lower()}_analytics_results WHERE pop_density > 0 LIMIT 5000;"
-        df = pd.read_sql(query, engine)
-        return df[['lat', 'lon', 'pop_density']].values.tolist()
-    except: return []
+        df = pd.read_csv("demand_cache.csv")
+        return df[df['city'] == city_name.lower()][['lat', 'lon', 'pop_density']].values.tolist()
+    except Exception as e:
+        st.error(f"Data Load Error: {e}")
+        return []
 
 # --- 3. HARDCODED RECOMMENDATIONS ---
 recommendations = {
